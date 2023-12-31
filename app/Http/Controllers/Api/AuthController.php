@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+
 
 class AuthController extends Controller
 {
@@ -110,5 +112,44 @@ class AuthController extends Controller
             ], 500);
         }
     }
-}
 
+    public function checkLoggedInUser()
+    {
+        try {
+            // Get the currently authenticated user
+            $user = Auth::user();
+
+            if ($user) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'User is logged in',
+                    'user' => $user,
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No user is currently logged in',
+                ], 401);
+            }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function logout()
+    {
+        $user = Auth::user();
+        $user->tokens()->where('id', $user->currentAccessToken()->id)->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User logged out successfully',
+        ],
+            200
+        );
+    }
+}
